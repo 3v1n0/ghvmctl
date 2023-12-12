@@ -32,6 +32,8 @@ jobs:
           set -xe
           sudo snap connect ghvmctl:lxd lxd:lxd
 
+          ghvmctl && exit 1 || true
+
           ghvmctl prepare
 
           ghvmctl install-snap signal-desktop --channel candidate

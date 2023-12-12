@@ -111,10 +111,10 @@ EOF
 
 # Parse the subcommand and exit if empty, printing the usage
 command="${1:-}"
-shift
 if [[ -z $command ]]; then
 	usage
 fi
+shift
 
 case "$command" in
 "prepare")
