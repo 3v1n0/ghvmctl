@@ -17,6 +17,8 @@ if [ -v SNAP ]; then
 	GHVMCTL_RUNNER_PATH=${SNAP}/opt/ghvmctl
 fi
 
+SCREENSHOTS_PATH="${REAL_HOME}/ghvmctl-screenshots"
+
 # Starts a desktop VM and waits for the agent to be running inside.
 prepare_vm() {
 	info "Launching VM '${VM_NAME}' with LXD"
@@ -64,27 +66,31 @@ exec_in_vm() {
 }
 
 # Takes a screenshot of the full screen and pulls the file back from the VM to a file
-# named "screenshot-screen.png", and uploads to imgur, returning the URL
+# named "screenshot-screen-$TIMESTAMP.png", last file is linked as "screenshot-screen.png".
 screenshot_full() {
 	info "Taking a screenshot of the full screen inside the VM"
-	mkdir -p "${REAL_HOME}/ghvmctl-screenshots"
+	mkdir -p "${SCREENSHOTS_PATH}"
 	# Take a screenshot of the whole screen in the VM
+	timestamp=$(date +'%Y-%m-%d_%H%M%S')
 	exec_in_vm "gnome-screenshot -f /home/ubuntu/screen.png"
 	# Pull the screenshot back to the host
-	lxc file pull "${VM_NAME}/home/ubuntu/screen.png" \
-		"${REAL_HOME}/ghvmctl-screenshots/screenshot-screen.png"
+	output="screenshot-screen-$timestamp.png"
+	lxc file pull "${VM_NAME}/home/ubuntu/screen.png" "${SCREENSHOTS_PATH}/$output"
+	ln -sf "$output" "${SCREENSHOTS_PATH}/screenshot-screen.png"
 }
 
 # Takes a screenshot of the active window and pulls the file back from the VM to a file
-# named "screenshot-window.png", and uploads to imgur, returning the URL
+# named "screenshot-window-$TIMESTAMP.png", last file is linked as "screenshot-window.png".
 screenshot_window() {
 	info "Taking a screenshot of the active window inside the VM"
-	mkdir -p "${REAL_HOME}/ghvmctl-screenshots"
+	mkdir -p "${SCREENSHOTS_PATH}"
 	# Take a screenshot of the active window in the VM
+	timestamp=$(date +'%Y-%m-%d_%H%M%S')
 	exec_in_vm "gnome-screenshot -w -f /home/ubuntu/window.png"
 	# Pull the screenshot back to the host
-	lxc file pull "${VM_NAME}/home/ubuntu/window.png" \
-		"${REAL_HOME}/ghvmctl-screenshots/screenshot-window.png"
+	output="screenshot-window-$timestamp.png"
+	lxc file pull "${VM_NAME}/home/ubuntu/window.png" "${SCREENSHOTS_PATH}/$output"
+	ln -sf "$output" "${SCREENSHOTS_PATH}/screenshot-window.png"
 }
 
 # Print the usage statement and exit the program
