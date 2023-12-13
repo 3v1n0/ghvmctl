@@ -10,6 +10,13 @@ VM_CPUS="${VM_CPUS:=1}"
 VM_MEM_GIB="${VM_MEM_GIB:=6}"
 VM_DISK_GIB="${VM_DISK_GIB:=12}"
 
+REAL_HOME=${SNAP_REAL_HOME:-$PWD}
+GHVMCTL_RUNNER_PATH=$(dirname "$0")
+
+if [ -v SNAP ]; then
+	GHVMCTL_RUNNER_PATH=${SNAP}/opt/ghvmctl
+fi
+
 # Starts a desktop VM and waits for the agent to be running inside.
 prepare_vm() {
 	info "Launching VM '${VM_NAME}' with LXD"
@@ -26,7 +33,8 @@ prepare_vm() {
 	info "Installing utilities in VM"
 
 	# Push script runner into the VM
-	lxc -q file push "${SNAP}/opt/ghvmctl/ghvmctl-runner" "${VM_NAME}/bin/ghvmctl-runner"
+	lxc -q file push "${GHVMCTL_RUNNER_PATH}/ghvmctl-runner" \
+		"${VM_NAME}/bin/ghvmctl-runner"
 	lxc exec "${VM_NAME}" -- chmod 755 /bin/ghvmctl-runner
 
 	lxc exec "${VM_NAME}" -- apt-get update -qq
@@ -46,22 +54,24 @@ exec_in_vm() {
 # named "screenshot-screen.png", and uploads to imgur, returning the URL
 screenshot_full() {
 	info "Taking a screenshot of the full screen inside the VM"
-	mkdir -p "${SNAP_REAL_HOME}/ghvmctl-screenshots"
+	mkdir -p "${REAL_HOME}/ghvmctl-screenshots"
 	# Take a screenshot of the whole screen in the VM
 	exec_in_vm "gnome-screenshot -f /home/ubuntu/screen.png"
 	# Pull the screenshot back to the host
-	lxc file pull "${VM_NAME}/home/ubuntu/screen.png" "${SNAP_REAL_HOME}/ghvmctl-screenshots/screenshot-screen.png"
+	lxc file pull "${VM_NAME}/home/ubuntu/screen.png" \
+		"${REAL_HOME}/ghvmctl-screenshots/screenshot-screen.png"
 }
 
 # Takes a screenshot of the active window and pulls the file back from the VM to a file
 # named "screenshot-window.png", and uploads to imgur, returning the URL
 screenshot_window() {
 	info "Taking a screenshot of the active window inside the VM"
-	mkdir -p "${SNAP_REAL_HOME}/ghvmctl-screenshots"
+	mkdir -p "${REAL_HOME}/ghvmctl-screenshots"
 	# Take a screenshot of the active window in the VM
 	exec_in_vm "gnome-screenshot -w -f /home/ubuntu/window.png"
 	# Pull the screenshot back to the host
-	lxc file pull "${VM_NAME}/home/ubuntu/window.png" "${SNAP_REAL_HOME}/ghvmctl-screenshots/screenshot-window.png"
+	lxc file pull "${VM_NAME}/home/ubuntu/window.png" \
+		"${REAL_HOME}/ghvmctl-screenshots/screenshot-window.png"
 }
 
 # Print the usage statement and exit the program
