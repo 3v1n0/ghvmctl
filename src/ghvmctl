@@ -112,7 +112,7 @@ SUBCOMMANDS:
 		  ghvmctl exec "cat /etc/hostname"
 		  ghvmctl exec "sudo apt update"
 
-	install-snap <snap name> [-c|--channel <channel>] [-r|--revision <revision>]
+	snap-install <snap name> [-c|--channel <channel>] [-r|--revision <revision>]
 		Installs the specified snap inside the VM.
 
 		Examples:
@@ -120,7 +120,7 @@ SUBCOMMANDS:
 		  ghvmctl install snap signal-desktop --channel candidate
 		  ghvmctl install snap signal-desktop --revision 554
 
-	run-snap <snap name>
+	snap-run <snap name>
 		Runs the specified snap inside the VM. Outputs stdout/stderr to a file
 		inside the VM at /home/ubuntu/<snap name>.log.
 
@@ -145,6 +145,12 @@ if [[ -z $command ]]; then
 fi
 shift
 
+function check_deprecated_command() {
+	if  [[ "$1" == *-snap ]]; then
+		echo "$0: $1 is deprecated, use snap-${1%-snap} instead."
+	fi
+}
+
 case "$command" in
 "prepare")
 	prepare_vm
@@ -152,12 +158,14 @@ case "$command" in
 "exec")
 	exec_in_vm "$@"
 	;;
-"run-snap")
+"snap-run"|"run-snap")
+	check_deprecated_command "$command"
 	exec_in_vm "snap run $1 &>~/$1.log & proc=\$!;"\
 		"sleep 3 && kill -0 \$proc &>/dev/null || wait \$proc ||"\
 		"(echo running $1 failed; cat ~/$1.log; exit 1)"
 	;;
-"install-snap")
+"snap-install"|"install-snap")
+	check_deprecated_command "$command"
 	snap_name="$1"
 	shift
 
