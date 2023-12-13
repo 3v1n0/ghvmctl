@@ -36,6 +36,8 @@ jobs:
 
           ghvmctl prepare
 
+          ghvmctl run-snap it-does-not-exists.hopefully && exit 1 || true
+
           ghvmctl install-snap signal-desktop --channel candidate
           ghvmctl install-snap terraform --revision 584
           ghvmctl install-snap kubectl

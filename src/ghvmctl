@@ -136,7 +136,9 @@ case "$command" in
 	exec_in_vm "$@"
 	;;
 "run-snap")
-	exec_in_vm "snap run $1 &>/home/ubuntu/$1.log &"
+	exec_in_vm "snap run $1 &>~/$1.log & proc=\$!;"\
+		"sleep 3 && kill -0 \$proc &>/dev/null || wait \$proc ||"\
+		"(echo running $1 failed; cat ~/$1.log; exit 1)"
 	;;
 "install-snap")
 	snap_name="$1"
